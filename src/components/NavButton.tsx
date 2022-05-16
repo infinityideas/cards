@@ -22,7 +22,7 @@ class NavButton extends React.Component<NavButtonProps,{}> {
                 <button style={{width: 90, height: 40, backgroundColor: this.props.backgroundColor, borderRadius: "7px", border: "1px solid black", color: "white", fontFamily: "Rubik"}}>
                     <table>
                         <th style={{width: "50%"}}>
-                            <img src={imageDict[this.props.imageSRC as keyof typeof imageDict]} width="35%" style={{filter: "invert(1)"}}/>
+                            <img src={imageDict[this.props.imageSRC as keyof typeof imageDict]} width="13px" style={{filter: "invert(1)"}}/>
                         </th>
                         <th style={{width: "50%"}}>
                             <p style={{margin: 0, textAlign: "left"}}>{this.props.innerText}</p>

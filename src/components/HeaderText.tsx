@@ -3,6 +3,7 @@ import '../styles/HeaderText.css';
 
 interface HeaderProps {
     innerText: string
+    subText: JSX.Element
 }
 
 interface HeaderState {
@@ -18,7 +19,7 @@ class HeaderText extends React.Component<HeaderProps, HeaderState> {
     render() {
        return (
            <div id="textContainer">
-                <div id="textDiv">Cards</div>
+                <div id="textDiv">{this.props.innerText}<br/>{this.props.subText}</div>
            </div>
        )
     }

@@ -1,0 +1,8 @@
+@font-face {
+    font-family: Lato;
+    src: url(../assets/fonts/lato/Lato-Light.ttf);
+}
+
+p {
+    font-family: Lato;
+}
