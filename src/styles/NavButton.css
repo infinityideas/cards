@@ -2,3 +2,12 @@
     font-family: Rubik;
     src: url(../assets/fonts/rubik/Rubik-VariableFont_wght.ttf);
 }
+
+button {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+button:hover {
+    filter: brightness(75%);
+}

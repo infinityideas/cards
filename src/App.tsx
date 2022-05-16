@@ -14,7 +14,8 @@ class App extends React.Component<{}, {}> {
             <div>
                 <HeaderText innerText="Cards" />
                 <div id="ButtonHolder">
-                   <NavButton innerText="Play" imageSRC="play" backgroundColor="#ed5645"/>
+                   <NavButton innerText="Play" imageSRC="play" backgroundColor="#ed5645" toLink="/play"/>
+                   <NavButton innerText="About" imageSRC="about" backgroundColor="#0284e0" toLink="/about"/>
                 </div>
             </div>
         );
