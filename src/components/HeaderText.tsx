@@ -17,7 +17,9 @@ class HeaderText extends React.Component<HeaderProps, HeaderState> {
 
     render() {
        return (
-           <div style={{fontFamily: "Libre Baskerville"}}>Test</div>
+           <div id="textContainer">
+                <div id="textDiv">Cards</div>
+           </div>
        )
     }
 }

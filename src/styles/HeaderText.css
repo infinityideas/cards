@@ -2,3 +2,14 @@
     font-family: Libre Baskerville;
     src: url(../assets/fonts/librebaskerville/LibreBaskerville-Regular.ttf);
 }
+
+#textContainer {
+    text-align: center;
+    margin-top: 20vh;
+}
+
+#textDiv {
+    font-family: Libre Baskerville;
+    font-size: 100px;
+    font-weight: bold;
+}
