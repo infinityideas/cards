@@ -17,11 +17,13 @@ class Play extends React.Component<{}, {}> {
                 <HeaderText innerText='Play!' subText={<div><p>Choose the game you want to play.</p></div>} />
                 <div className="gamecardholder">
                     <table style={{display: "inline"}}>
-                        <tr>
-                            <td>
-                                <GameCard gameName="Crazy 8s" gameDesc="Essentially an online game of Uno!" gameAdd="crazyeights" />
-                            </td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <GameCard gameName="Crazy 8s" gameDesc="Essentially an online game of Uno!" gameAdd="crazyeights" />
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <Footer />

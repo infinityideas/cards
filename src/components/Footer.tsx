@@ -10,7 +10,7 @@ class Footer extends React.Component<{},{}> {
     render() {
         return (
             <div style={{textAlign: "center"}}>
-                <p>Created by Darius for AP Computer Science A. Source code <a href="#">here</a> and system status <a href="https://status.infinityideas.dev">here</a>.</p>
+                <p>Created by Darius for AP Computer Science A. Source code <a href="https://github.com/infinityideas/cards">here</a> and system status <a href="https://status.infinityideas.dev">here</a>.</p>
             </div>
         );
     }
