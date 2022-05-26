@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { render } from 'react-dom';
 import { Stage, Layer, Rect, Text } from 'react-konva';
 import Konva from 'konva';
+import RegDeck from '../scripts/CardDict';
+import { Card } from '../scripts/Card';
 
 const axios = require('axios');
 
@@ -23,7 +24,7 @@ class ColoredRect extends React.Component {
       <Rect
         x={0}
         y={0}
-        width={window.innerHeight+300}
+        width={window.innerHeight*1.5}
         height={window.innerHeight}
         fill={this.state.color}
         onClick={this.handleClick}
@@ -31,7 +32,6 @@ class ColoredRect extends React.Component {
     );
   }
 }
-
 class CrazyEights extends Component<{}, CrazyEightsState> {
   private cardDeck: Array<any>;
 
@@ -45,8 +45,11 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
 
   componentDidMount() {
     axios.get("http://127.0.0.1:5000/deckgen/regdecknj").then((response: any) => {
-      this.cardDeck = response['data']
-      console.log(this.cardDeck);
+      this.cardDeck = []
+      for (var i=0; i<response['data']['data'].length; i++) {
+        this.cardDeck.push(RegDeck[response['data']['data'][i]]);
+      }
+      
       this.setState({
         loaded: true
       })
@@ -60,7 +63,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       )
     }
     return (
-      <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Stage width={window.innerHeight*1.5} height={window.innerHeight}>
         <Layer>
           <ColoredRect />
         </Layer>
