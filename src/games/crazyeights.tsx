@@ -1,8 +1,7 @@
-import React, { Component } from 'react';
-import { Stage, Layer, Rect, Text } from 'react-konva';
-import Konva from 'konva';
+import { Component } from 'react';
+import { Stage, Layer, Image } from 'react-konva';
 import RegDeck from '../scripts/CardDict';
-import { Card } from '../scripts/Card';
+import useImage from 'use-image';
 
 const axios = require('axios');
 
@@ -10,28 +9,11 @@ interface CrazyEightsState {
   loaded: boolean
 }
 
-class ColoredRect extends React.Component {
-  state = {
-    color: 'green'
-  };
-  handleClick = () => {
-    this.setState({
-      color: Konva.Util.getRandomColor()
-    });
-  };
-  render() {
-    return (
-      <Rect
-        x={0}
-        y={0}
-        width={window.innerHeight*1.5}
-        height={window.innerHeight}
-        fill={this.state.color}
-        onClick={this.handleClick}
-      />
-    );
-  }
+const UrlImage = (props: any) => {
+  const [image] = useImage(props.src);
+  return <Image image={image} x={props.x} y={props.y} width={props.width} height={props.height} draggable/>
 }
+
 class CrazyEights extends Component<{}, CrazyEightsState> {
   private cardDeck: Array<any>;
 
@@ -44,16 +26,18 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
   }
 
   componentDidMount() {
-    axios.get("http://127.0.0.1:5000/deckgen/regdecknj").then((response: any) => {
-      this.cardDeck = []
-      for (var i=0; i<response['data']['data'].length; i++) {
-        this.cardDeck.push(RegDeck[response['data']['data'][i]]);
-      }
-      
-      this.setState({
-        loaded: true
-      })
-    });
+    if (!this.state.loaded) {
+      axios.get("http://127.0.0.1:5000/deckgen/regdecknj").then((response: any) => {
+        this.cardDeck = []
+        for (var i=0; i<response['data']['data'].length; i++) {
+          this.cardDeck.push(RegDeck[response['data']['data'][i]]);
+        }
+        console.log(this.cardDeck);
+        this.setState({
+          loaded: true
+        })
+      });
+    }
   }
 
   render() {
@@ -65,7 +49,11 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     return (
       <Stage width={window.innerHeight*1.5} height={window.innerHeight}>
         <Layer>
-          <ColoredRect />
+          <UrlImage src={this.cardDeck[0].image} x={(window.innerHeight*1.5)/2-40} y={window.innerHeight-232} width={160} height={232}/>
+          <UrlImage src={this.cardDeck[1].image} x={(window.innerHeight*1.5)/2-20} y={window.innerHeight-232} width={160} height={232}/>
+          <UrlImage src={this.cardDeck[2].image} x={(window.innerHeight*1.5)/2-0} y={window.innerHeight-232} width={160} height={232}/>
+          <UrlImage src={this.cardDeck[3].image} x={(window.innerHeight*1.5)/2+20} y={window.innerHeight-232} width={160} height={232}/>
+          <UrlImage src={this.cardDeck[4].image} x={(window.innerHeight*1.5)/2+40} y={window.innerHeight-232} width={160} height={232}/>
         </Layer>
       </Stage>
     );
