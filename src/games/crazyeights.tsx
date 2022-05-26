@@ -1,21 +1,23 @@
 import { Component } from 'react';
-import { Stage, Layer, Image } from 'react-konva';
+import { Stage, Layer} from 'react-konva';
 import RegDeck from '../scripts/CardDict';
-import useImage from 'use-image';
 import HeaderText from '../components/HeaderText';
 import React from 'react';
+import UrlImage from '../components/UrlImage';
+import config from '../scripts/Config';
+import Pusher from "pusher-js";
+import ShareButton from '../components/ShareButton';
 
 const axios = require('axios');
 
 interface CrazyEightsState {
   loaded: boolean,
   rulesset: boolean,
+  linkgiven: boolean,
+  customLink: string,
 }
 
-const UrlImage = (props: any) => {
-  const [image] = useImage(props.src);
-  return <Image image={image} x={props.x} y={props.y} width={props.width} height={props.height} draggable={props.draggable}/>
-}
+var pusher = new Pusher(config["pusherKey"]);
 
 class CrazyEights extends Component<{}, CrazyEightsState> {
   private cardDeck: Array<any>;
@@ -23,32 +25,33 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
   private hands: Array<any>;
   private NUMPLAYERS: number;
   private numPlayersRef: any;
+  private channel: any;
 
   constructor(props: any) {
     super(props);
     this.state = {
       loaded: false,
-      rulesset: false
+      rulesset: false,
+      linkgiven: false,
+      customLink: "Loading link..."
     }
     this.cardDeck = [];
     this.discardPile = [];
     this.hands = [];
     this.NUMPLAYERS = 3;
     this.numPlayersRef = React.createRef();
+    this.channel = "";
 
     this.setRules = this.setRules.bind(this);
+    this.startLinkMonitor = this.startLinkMonitor.bind(this);
   }
 
   componentDidMount() {
     if (!this.state.loaded) {
-      axios.get("http://127.0.0.1:5000/deckgen/regdecknj").then((response: any) => {
+      axios.get(config["flaskServer"]+"deckgen/regdecknj").then((response: any) => {
         this.cardDeck = []
         for (var i=0; i<response['data']['data'].length; i++) {
           this.cardDeck.push(RegDeck[response['data']['data'][i]]);
-        }
-        for (var player = 0; player<this.NUMPLAYERS; player++) {
-          this.hands.push([]);
-
         }
         this.setState({
           loaded: true
@@ -57,15 +60,35 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     }
   }
 
+  startLinkMonitor() {
+    if (this.state.customLink=="Loading link...") {
+      axios.get(config["flaskServer"]+"accessidgen").then((response: any) => {
+        this.channel = pusher.subscribe(response['data']['data']);
+        this.setState({
+          customLink: config['webServer']+"games/crazyeights/"+response['data']['data']
+        });
+      })
+    }
+  }
+
   setRules() {
     if (this.numPlayersRef.current.value < 2 || this.numPlayersRef.current.value > 4 || !this.numPlayersRef.current.value) {
       alert("You can only have between 2 and 4 players, inclusive!");
     } else {
       this.NUMPLAYERS = this.numPlayersRef.current.value;
+      this.hands = [];
+      for (var player = 0; player<this.NUMPLAYERS; player++) {
+        this.hands.push([]);
+        for (var card = 0; card<7; card++) {
+          this.hands[player].push(this.cardDeck.shift());
+        }
+      }
+      console.log(this.hands);
       this.setState({
         loaded: true,
-        rulesset: true
-      })
+        rulesset: true,
+        linkgiven: false,
+      });
     }
   }
 
@@ -84,6 +107,19 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
             <input type="number" name="numplayers" ref={this.numPlayersRef} /><br/><br/>
             <button onClick={this.setRules}>Set Rules</button>
           </div>
+        </div>
+      )
+    }
+    if (!this.state.linkgiven) {
+      this.startLinkMonitor();
+      var subtext = (<p>
+        Awesome! Now share this link with your friends.
+        <br/>The game won't start until all {this.NUMPLAYERS} players join.
+        <br/><br/><strong style={{fontFamily: "LatoBold"}}>{this.state.customLink}</strong><br/>
+        <ShareButton innerText="Share" shareText={this.state.customLink} backgroundColor="#2dd121"/></p>);
+      return (
+        <div>
+          <HeaderText innerText='Crazy Eights' subText={subtext} />
         </div>
       )
     }

@@ -4,8 +4,15 @@
 }
 
 @font-face {
-    font-family: Lato;
+    font-family: 'Lato';
+    font-weight: normal;
     src: url(../assets/fonts/lato/Lato-Light.ttf);
+}
+
+@font-face {
+    font-family: 'LatoBold';
+    font-weight: bold;
+    src: url(../assets/fonts/lato/Lato-Bold.ttf);
 }
 
 #textContainer {
