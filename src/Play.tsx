@@ -22,6 +22,12 @@ class Play extends React.Component<{}, {}> {
                                 <td>
                                     <GameCard gameName="Crazy 8s" gameDesc="Essentially an online game of Uno!" gameAdd="crazyeights" />
                                 </td>
+                                <td>
+                                    <GameCard gameName="Another Game" gameDesc="Another game!" gameAdd="#" />
+                                </td>
+                                <td>
+                                    <GameCard gameName="OMG! The Game" gameDesc="OMG" gameAdd="#" />
+                                </td>
                             </tr>
                         </tbody>
                     </table>

@@ -16,4 +16,14 @@ export class Card {
     toString() {
         return this.denomination+" of "+this.suit;
     }
+
+    toDict() {
+        return {
+            denomination: this.denomination,
+            suit: this.suit,
+            image: this.image,
+            color: this.color,
+            value: this.value
+        }
+    }
 }
