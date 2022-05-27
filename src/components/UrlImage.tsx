@@ -1,9 +1,38 @@
 import { Image } from "react-konva";
 import useImage from "use-image";
+import { useState, useEffect } from "react";
 
 const UrlImage = (props: any) => {
     const [image] = useImage(props.src);
-    return <Image image={image} x={props.x} y={props.y} width={props.width} height={props.height} draggable={props.draggable} rotation={props.rot}/>
+
+    const [pos, setPos] = useState([props.x, props.y]);
+    const [drag, setDrag] = useState(props.draggable);
+
+    const cardDragEnd = (e: any) => {
+        setPos([e.target.x(), e.target.y()]);
+    }
+
+    useEffect(() => {
+        if (!((pos[0] == props.discardX) && (pos[1] == props.discardY))) {
+            if (((pos[0] > props.discardX) && (pos[0] < props.discardX+120)) && ((pos[1] > props.discardY) && (pos[1] < props.discardY+174))) {
+                setPos([props.discardX, props.discardY]);
+                setDrag(false);
+            } else {
+                setPos([props.x, props.y]);
+            }
+        }
+    }, [pos[0], pos[1]])
+    
+    return <Image 
+        image={image} 
+        x={pos[0]} 
+        y={pos[1]} 
+        width={props.width} 
+        height={props.height} 
+        draggable={drag} 
+        rotation={props.rot}
+        onDragEnd = {cardDragEnd}
+        />
 }
 
 export default UrlImage;

@@ -9,7 +9,7 @@ import Pusher from "pusher-js";
 import ShareButton from '../components/ShareButton';
 
 const axios = require('axios');
-const backSrc = "https://infinitecards.s3.us-east-1.amazonaws.com/card_design_BBN.png";
+const backSrc = "https://infinitecards.s3.us-east-1.amazonaws.com/card_design_BBN3.png";
 
 interface CrazyEightsState {
   loaded: boolean,
@@ -194,7 +194,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
             currentY += 20;
           }
         } else {
-          imageDB.push(<UrlImage src={this.hands[0][x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0}/>);
+          imageDB.push(<UrlImage src={this.hands[0][x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>);
           currentX += 20;
         }
       }
