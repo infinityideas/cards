@@ -9,6 +9,7 @@ import Pusher from "pusher-js";
 import ShareButton from '../components/ShareButton';
 
 const axios = require('axios');
+const backSrc = "https://infinitecards.s3.us-east-1.amazonaws.com/card_design_BBN.png";
 
 interface CrazyEightsState {
   loaded: boolean,
@@ -34,6 +35,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
   private channel: any;
   private userName: string;
   private userNameList: any;
+  private computerNameList: any;
 
   constructor(props: any) {
     super(props);
@@ -54,10 +56,12 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     this.channel = "";
     this.userName = "";
     this.userNameList = {};
+    this.computerNameList = [];
 
     this.setRules = this.setRules.bind(this);
     this.startLinkMonitor = this.startLinkMonitor.bind(this);
     this.computerJoined = this.computerJoined.bind(this);
+    this.generatePlay = this.generatePlay.bind(this);
   }
 
   componentDidMount() {
@@ -99,11 +103,21 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
         }
       }).then(()=> {
         this.userNameList[data['FROM']]=data['USERNAME'];
-        this.setState((prev: any) => {
-          return ({
-            numConnected: prev.numConnected+1
+        this.computerNameList.push(data['FROM']);
+        if (this.state.numConnected+1 == this.NUMPLAYERS) {
+          this.setState((prev: any) => {
+            return ({
+              numConnected: prev.numConnected+1,
+              linkgiven: true
+            })
           })
-        })
+        } else {
+          this.setState((prev: any) => {
+            return ({
+              numConnected: prev.numConnected+1
+            })
+          })
+        }
       })
     }
   }
@@ -133,15 +147,63 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
           this.hands[player].push(this.cardDeck.shift());
         }
       }
+      this.discardPile.push(this.cardDeck.shift());
       console.log(this.hands);
       this.userName = this.usernameRef.current.value;
       this.userNameList['SERVER']=this.userName+" (Host)";
+      this.computerNameList.push('SERVER');
       this.setState({
         loaded: true,
         rulesset: true,
         linkgiven: false,
       });
     }
+  }
+
+  generatePlay() {
+    var locationsX = [(window.innerHeight*1.5)/2-Math.floor(this.hands[0].length/2)*20-40, window.innerHeight*1.5-54, (window.innerHeight*1.5)/2-Math.floor(this.hands[0].length/2)*20-40, 0];
+    var locationsY = [window.innerHeight-174, (window.innerHeight/2)-Math.floor(this.hands[1].length/2)*20-40, 0, (window.innerHeight/2)-Math.floor(this.hands[1].length/2)*20+40];
+
+    var changeX = [true, false, true, false];
+    var changeY = [false, true, false, true];
+
+    var imageDB = [];
+    var currentX = 0;
+    var currentY = 0;
+
+    imageDB.push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0}/>);
+    imageDB.push(<UrlImage width={120} height={174} src={this.discardPile[0].image} x={window.innerHeight*1.5/2+5} y={window.innerHeight/2-87} draggable={false} rot={0} />);
+
+    for (var i=0; i<this.hands.length; i++) {
+      currentX = locationsX[i];
+      currentY = locationsY[i];
+
+      for (var x=0; x<this.hands[i].length; x++) {
+        if (i>0) {
+          if (i==1) {
+            imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={90}/>);
+          } else if (i==3) {
+            imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={-90}/>);
+          } else {
+            imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0}/>);
+          }
+          if (changeX[i]) {
+            currentX += 20;
+          }
+          if (changeY[i]) {
+            currentY += 20;
+          }
+        } else {
+          imageDB.push(<UrlImage src={this.hands[0][x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0}/>);
+          currentX += 20;
+        }
+      }
+    }
+
+    return (<Layer>
+      {imageDB}
+    </Layer>)
+    
   }
 
   render() {
@@ -178,22 +240,10 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
         </div>
       )
     }
+    var currentLayer = this.generatePlay();
     return (
       <Stage width={window.innerHeight*1.5} height={window.innerHeight}>
-        <Layer>
-          <UrlImage src="https://infinitecards.s3.us-east-1.amazonaws.com/Card_back_01.svg.png" x={(window.innerHeight*1.5)/2-60} y={(window.innerHeight/2)-87} width={120} height={174} />
-          <UrlImage src={this.cardDeck[0].image} x={(window.innerHeight*1.5)/2-40} y={window.innerHeight-174} width={120} height={174} draggable/>
-          <UrlImage src={this.cardDeck[1].image} x={(window.innerHeight*1.5)/2-20} y={window.innerHeight-174} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[2].image} x={(window.innerHeight*1.5)/2-0} y={window.innerHeight-174} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[3].image} x={(window.innerHeight*1.5)/2+20} y={window.innerHeight-174} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[4].image} x={(window.innerHeight*1.5)/2+40} y={window.innerHeight-174} width={120} height={174}/>
-
-          <UrlImage src={this.cardDeck[5].image} x={(window.innerHeight*1.5)/2-40} y={0} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[6].image} x={(window.innerHeight*1.5)/2-20} y={0} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[7].image} x={(window.innerHeight*1.5)/2-0} y={0} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[8].image} x={(window.innerHeight*1.5)/2+20} y={0} width={120} height={174}/>
-          <UrlImage src={this.cardDeck[9].image} x={(window.innerHeight*1.5)/2+40} y={0} width={120} height={174}/>
-        </Layer>
+        {currentLayer}
       </Stage>
     );
   }
