@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { Stage, Layer} from 'react-konva';
+import { Stage, Layer, Text} from 'react-konva';
 import RegDeck from '../scripts/CardDict';
 import HeaderText from '../components/HeaderText';
 import React from 'react';
@@ -99,16 +99,28 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
           CARDS: [this.hands[this.state.numConnected][0].toDict(),this.hands[this.state.numConnected][1].toDict(),
           this.hands[this.state.numConnected][2].toDict(),this.hands[this.state.numConnected][3].toDict(),
           this.hands[this.state.numConnected][4].toDict(),this.hands[this.state.numConnected][5].toDict(),
-          this.hands[this.state.numConnected][6].toDict()]
+          this.hands[this.state.numConnected][6].toDict()],
+          ORDER: this.state.numConnected,
+          FAILURE: false,
+          NUMPLAYERS: this.NUMPLAYERS,
+          DISCARD: this.discardPile[0].toDict()
         }
       }).then(()=> {
         this.userNameList[data['FROM']]=data['USERNAME'];
         this.computerNameList.push(data['FROM']);
         if (this.state.numConnected+1 == this.NUMPLAYERS) {
-          this.setState((prev: any) => {
-            return ({
-              numConnected: prev.numConnected+1,
-              linkgiven: true
+          axios.post(config['flaskServer']+"publish", {
+            GAME: this.state.gameId,
+            MSG: "WELCOME",
+            PARAMS: {
+
+            }
+          }).then(() => {
+            this.setState((prev: any) => {
+              return ({
+                numConnected: prev.numConnected+1,
+                linkgiven: true
+              })
             })
           })
         } else {
@@ -202,6 +214,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
 
     return (<Layer>
       {imageDB}
+      
     </Layer>)
     
   }

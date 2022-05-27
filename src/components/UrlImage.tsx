@@ -7,6 +7,7 @@ const UrlImage = (props: any) => {
 
     const [pos, setPos] = useState([props.x, props.y]);
     const [drag, setDrag] = useState(props.draggable);
+    const [rot, setRot] = useState(props.rot);
 
     const cardDragEnd = (e: any) => {
         setPos([e.target.x(), e.target.y()]);
@@ -17,6 +18,7 @@ const UrlImage = (props: any) => {
             if (((pos[0] > props.discardX) && (pos[0] < props.discardX+120)) && ((pos[1] > props.discardY) && (pos[1] < props.discardY+174))) {
                 setPos([props.discardX, props.discardY]);
                 setDrag(false);
+                setRot(0);
             } else {
                 setPos([props.x, props.y]);
             }
@@ -30,7 +32,7 @@ const UrlImage = (props: any) => {
         width={props.width} 
         height={props.height} 
         draggable={drag} 
-        rotation={props.rot}
+        rotation={rot}
         onDragEnd = {cardDragEnd}
         />
 }
