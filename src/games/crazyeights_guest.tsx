@@ -3,7 +3,7 @@ import { useParams } from 'react-router';
 import HeaderText from '../components/HeaderText';
 import config from '../scripts/Config';
 import Pusher from 'pusher-js';
-import UrlImage from '../components/UrlImage';
+import UrlImage from '../components/crazyeights/UrlImage';
 import { Stage, Layer } from 'react-konva';
 
 const axios = require('axios');
@@ -21,6 +21,7 @@ interface GuestProps {
     playerName: string,
     inWaiting: boolean,
     discardPile: any,
+    currentPlayer: number,
 }
 
 class CrazyEightsGuest extends React.Component<any, GuestProps> {
@@ -40,7 +41,8 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
             inGame: false,
             playerName: "",
             inWaiting: true,
-            discardPile: {}
+            discardPile: {},
+            currentPlayer: 0
         };
 
         this.joinClick = this.joinClick.bind(this);

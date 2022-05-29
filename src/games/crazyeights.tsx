@@ -3,7 +3,7 @@ import { Stage, Layer, Text} from 'react-konva';
 import RegDeck from '../scripts/CardDict';
 import HeaderText from '../components/HeaderText';
 import React from 'react';
-import UrlImage from '../components/UrlImage';
+import UrlImage from '../components/crazyeights/UrlImage';
 import config from '../scripts/Config';
 import Pusher from "pusher-js";
 import ShareButton from '../components/ShareButton';
@@ -17,7 +17,8 @@ interface CrazyEightsState {
   linkgiven: boolean,
   customLink: string,
   numConnected: number,
-  gameId: string
+  gameId: string,
+  currentPlayer: number,
 }
 
 Pusher.logToConsole = true;
@@ -45,7 +46,8 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       linkgiven: false,
       customLink: "Loading link...",
       gameId: "",
-      numConnected: 1
+      numConnected: 1,
+      currentPlayer: 0,
     }
     this.cardDeck = [];
     this.discardPile = [];
@@ -206,7 +208,19 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
             currentY += 20;
           }
         } else {
-          imageDB.push(<UrlImage src={this.hands[0][x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>);
+          imageDB.push(<UrlImage 
+            src={this.hands[0][x].image} 
+            x={currentX} 
+            y={currentY} 
+            width={120} 
+            height={174} 
+            draggable={true} 
+            rot={0} 
+            discardX={window.innerHeight*1.5/2+5} 
+            discardY={window.innerHeight/2-87}
+            discard={this.discardPile[0]}  
+            current={this.hands[0][x]}
+          />);
           currentX += 20;
         }
       }

@@ -16,9 +16,13 @@ const UrlImage = (props: any) => {
     useEffect(() => {
         if (!((pos[0] == props.discardX) && (pos[1] == props.discardY))) {
             if (((pos[0] > props.discardX) && (pos[0] < props.discardX+120)) && ((pos[1] > props.discardY) && (pos[1] < props.discardY+174))) {
-                setPos([props.discardX, props.discardY]);
-                setDrag(false);
-                setRot(0);
+                if (props.current.isValid_CE(props.discard)) {
+                    setPos([props.discardX, props.discardY]);
+                    setDrag(false);
+                    setRot(0);
+                } else {
+                    setPos([props.x, props.y]);
+                }
             } else {
                 setPos([props.x, props.y]);
             }

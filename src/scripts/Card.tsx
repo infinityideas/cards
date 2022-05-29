@@ -13,6 +13,12 @@ export class Card {
         this.value = value;
     }
 
+    getDenomination() {return this.denomination;}
+    getSuit() {return this.suit;}
+    getImage() {return this.image;}
+    getColor()  {return this.color;}
+    getValue() {return this.value;}
+
     toString() {
         return this.denomination+" of "+this.suit;
     }
@@ -24,6 +30,14 @@ export class Card {
             image: this.image,
             color: this.color,
             value: this.value
+        }
+    }
+
+    isValid_CE(other: Card) {
+        if (this.denomination == "eight" || other.getDenomination()==this.denomination || other.getSuit() == this.suit) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
