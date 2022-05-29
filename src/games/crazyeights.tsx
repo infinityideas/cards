@@ -214,12 +214,13 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
             y={currentY} 
             width={120} 
             height={174} 
-            draggable={true} 
+            draggable={this.state.currentPlayer == 0 ? true : false} 
             rot={0} 
             discardX={window.innerHeight*1.5/2+5} 
             discardY={window.innerHeight/2-87}
             discard={this.discardPile[0]}  
             current={this.hands[0][x]}
+            cursor={this.state.currentPlayer == 0 ? "grab" : "not-allowed"}
           />);
           currentX += 20;
         }
