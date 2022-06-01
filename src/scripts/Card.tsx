@@ -29,7 +29,8 @@ export class Card {
             suit: this.suit,
             image: this.image,
             color: this.color,
-            value: this.value
+            value: this.value,
+            toString: this.toString()
         }
     }
 

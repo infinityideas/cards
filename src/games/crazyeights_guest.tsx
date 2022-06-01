@@ -48,6 +48,7 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
         this.joinClick = this.joinClick.bind(this);
         this.joinRSP = this.joinRSP.bind(this);
         this.welcome = this.welcome.bind(this);
+        this.carddown = this.carddown.bind(this);
 
         this.gameId = this.props.params.id;
         this.nameref = React.createRef();
@@ -58,6 +59,16 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
         this.channel = pusher.subscribe(this.gameId);
         this.channel.bind("JOIN_RSP", this.joinRSP);
         this.channel.bind("WELCOME", this.welcome);
+        this.channel.bind("CARDDOWN", this.carddown);
+    }
+
+    carddown(data: any) {
+        this.others[data['FROMORDER']] = data['NUMCARDS'];
+        console.log(this.others);
+        this.setState({
+            currentPlayer: data['NEXTPLAYER'],
+            discardPile: data['CARDDOWN']
+        });
     }
 
     welcome(data: any) {
@@ -84,42 +95,47 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
     }
 
     generatePlay() {
+        console.log(this.state);
+        console.log(this.others);
         var locationsX = [(window.innerHeight*1.5)/2-Math.floor(this.others[0]/2)*20-40, window.innerHeight*1.5-54, (window.innerHeight*1.5)/2-Math.floor(this.others[0]/2)*20-40, 0];
         var locationsY = [window.innerHeight-174, (window.innerHeight/2)-Math.floor(this.others[1]/2)*20-40, 0, (window.innerHeight/2)-Math.floor(this.others[1]/2)*20+40];
     
         var changeX = [true, false, true, false];
         var changeY = [false, true, false, true];
     
-        var imageDB = [];
+        var imageDB: Array<any> = [[]];
         var currentX = 0;
         var currentY = 0;
     
-        imageDB.push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0}/>);
-        imageDB.push(<UrlImage width={120} height={174} src={this.state.discardPile.image} x={window.innerHeight*1.5/2+5} y={window.innerHeight/2-87} draggable={false} rot={0} />);
+        imageDB[0].push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0}/>);
+        imageDB[0].push(<UrlImage width={120} height={174} src={this.state.discardPile.image} x={window.innerHeight*1.5/2+5} y={window.innerHeight/2-87} draggable={false} rot={0} />);
     
         for (var i=0; i<this.others.length+1; i++) {
           currentX = locationsX[i];
           currentY = locationsY[i];
+          imageDB.push([]);
     
           for (var x=0; x<this.others[i]; x++) {
+            console.log(i+" "+x);
             if (i>0) {
               if (i==1) {
                 if (i==this.order) {
-                    imageDB.push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    console.log(currentX+" "+currentY);
+                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
                 } else {
-                    imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={90}/>);
+                    imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={90}/>);
                 }       
               } else if (i==3) {
                 if (i==this.order) {
-                    imageDB.push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={-90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={-90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
                 } else {
-                    imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={-90}/>);
+                    imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={-90}/>);
                 }
               } else {
                 if (i==this.order) {
-                    imageDB.push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
                 } else {
-                    imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0}/>);   
+                    imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0}/>);   
                 }
               }
               if (changeX[i]) {
@@ -129,16 +145,21 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
                 currentY += 20;
               }
             } else {
-              imageDB.push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>);
+                console.log("but why")
+              imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>);
               currentX += 20;
             }
           }
         }
+
+        var layerDB = [];
+        for (var z=0; z<imageDB.length; z++) {
+            layerDB.push(<Layer>{imageDB[z]}</Layer>);
+        }
     
-        return (<Layer>
-          {imageDB}
-          
-        </Layer>)
+        return (<Stage width={window.innerHeight*1.5} height={window.innerHeight}>
+            {layerDB}
+        </Stage>)
         
       }
 
@@ -174,9 +195,9 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
         }
         var toReturn = this.generatePlay();
         return (
-            <Stage width={window.innerHeight*1.5} height={window.innerHeight}>
+            <div>
                 {toReturn}
-            </Stage>
+            </div>
         )
     }
 }
