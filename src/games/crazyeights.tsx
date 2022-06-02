@@ -7,7 +7,7 @@ import UrlImage from '../components/crazyeights/UrlImage';
 import config from '../scripts/Config';
 import Pusher from "pusher-js";
 import ShareButton from '../components/ShareButton';
-import { Card } from '../scripts/Card';
+import { CanDraw } from '../components/crazyeights/CanDraw';
 
 const seed = [32, 10, 12, 2, 40, 49, 13, 9, 11, 0, 36, 23, 35, 38, 5, 14, 1, 20, 19, 33, 15, 3, 6, 43, 47, 44, 25, 22, 42, 50, 21, 37, 29, 31, 30, 4, 28, 8, 18, 46, 48, 16, 27, 51, 39, 7, 34, 26, 41, 17, 24, 45];
 
@@ -25,7 +25,8 @@ interface CrazyEightsState {
   currentPlayer: number,
   hands: any,
   index: number,
-  reset: boolean
+  reset: boolean,
+  currentDraw: number,
 }
 
 Pusher.logToConsole = true;
@@ -59,6 +60,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       hands: [],
       index: 0,
       reset: false,
+      currentDraw: 0,
     }
     this.cardDeck = [];
     this.discardPile = [];
@@ -78,6 +80,9 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     this.generatePlay = this.generatePlay.bind(this);
     this.dragEnd = this.dragEnd.bind(this);
     this.cardDown = this.cardDown.bind(this);
+    this.onClick_Draw = this.onClick_Draw.bind(this);
+    this.drawRQ = this.drawRQ.bind(this);
+    this.onDraw = this.onDraw.bind(this);
   }
 
   cardDown(data: any) {
@@ -85,13 +90,13 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       return;
     }
     var newHand: Array<any> = [];
-    for (var x=0; x<this.state.hands[parseInt(data['FROMORDER'])].length; x++) {
-      if (this.state.hands[parseInt(data['FROMORDER'])][x] != data['CARDDOWN']) {
-        newHand.push(this.state.hands[parseInt(data['FROMORDER'])][x]);
+    for (var x=0; x<this.state.hands[data['FROMORDER']].length; x++) {
+      if (this.state.hands[data['FROMORDER']][x].toString != data['CARDDOWN'].toString) {
+        newHand.push(this.state.hands[data['FROMORDER']][x]);
       }
     }
     var toReturn = this.state.hands.slice();
-    toReturn[parseInt(data['FROMORDER'])] = newHand;
+    toReturn[data['FROMORDER']] = newHand;
     this.discardPile[0] = data['CARDDOWN'];
     this.setState({
         currentPlayer: data['NEXTPLAYER'],
@@ -105,7 +110,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       axios.get(config["flaskServer"]+"deckgen/regdecknj").then((response: any) => {
         this.cardDeck = []
         for (var i=0; i<response['data']['data'].length; i++) {
-          this.cardDeck.push(RegDeck[seed[i]]);
+          this.cardDeck.push(RegDeck[response['data']['data'][i]]);
         }
         console.log(this.cardDeck);
         this.setState({
@@ -177,6 +182,8 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
         this.channel = pusher.subscribe(response['data']['data']);
         this.channel.bind("JOIN", this.computerJoined);
         this.channel.bind("CARDDOWN", this.cardDown);
+        this.channel.bind("DRAW", this.onDraw);
+        this.channel.bind("DRAW_RQ", this.drawRQ);
         this.setState({
           customLink: config['webServer']+"play/crazyeights/"+response['data']['data'],
           gameId: response['data']['data']
@@ -250,7 +257,8 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
         currentPlayer: 1,
         hands: toUpdate.slice(),
         index: index,
-        reset: true
+        reset: true,
+        currentDraw: 0,
       });
     })
   }
@@ -263,6 +271,87 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       this.setState({
         reset: false
       });
+    }
+  }
+
+  onDraw(data: any) {
+    if (data['ENDTURN']) {
+      this.setState({
+        currentPlayer: data['NEXTPLAYER'],
+        reset: true
+      });
+    }
+  }
+
+  drawRQ(data: any) {
+    var newCard = this.cardDeck.shift().toDict();
+    axios.post(config['flaskServer']+"publish", {
+      GAME: this.state.gameId,
+      MSG: "DRAW_RSP",
+      PARAMS: {
+        FROM: "SERVER",
+        TO: data['FROM'],
+        PARAMS: {
+          DRAWNCARD: newCard
+        }
+      }
+    }).then(() => {
+      var newHands = this.state.hands.slice();
+      newHands[data['FROM']].push(newCard);
+      this.setState({
+        hands: newHands,
+        reset: true
+      })
+    })
+  }
+
+  onClick_Draw() {
+    if (this.state.currentDraw==2) {
+      axios.post(config['flaskServer']+"publish", {
+        GAME: this.state.gameId,
+        MSG: "DRAW",
+        PARAMS: {
+          TO: "ALL",
+          FROM: "SERVER",
+          FROMORDER: 0,
+          NEXTPLAYER: 1,
+          ENDTURN: true,
+          NUMCARDS: this.state.hands[0].length+1
+        }
+      }).then(() => {
+        var toReturn = this.state.hands[0].slice();
+        toReturn.push(this.cardDeck.shift().toDict());
+        var newHands = this.state.hands.slice();
+        newHands[0] = toReturn;
+        this.setState({
+          currentDraw: 0,
+          currentPlayer: 1,
+          hands: newHands,
+          reset: true
+        })
+      })
+    } else {
+      axios.post(config['flaskServer']+"publish", {
+        GAME: this.state.gameId,
+        MSG: "DRAW",
+        PARAMS: {
+          TO: "ALL",
+          FROM: "SERVER",
+          FROMORDER: 0,
+          ENDTURN: false,
+          NUMCARDS: this.state.hands[0].length+1
+        }
+      }).then(() => {
+        var toReturn = this.state.hands[0].slice();
+        toReturn.push(this.cardDeck.shift().toDict());
+        var newHands = this.state.hands.slice();
+        newHands[0] = toReturn;
+        this.setState({
+            currentDraw: this.state.currentDraw + 1,
+            hands: newHands,
+            reset: true,
+        })
+      })
     }
   }
 
@@ -342,7 +431,13 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     }
     console.log(imageDB);
 
-    imageDB[0].push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0}/>);
+    var drawChance: boolean = false;
+
+    if ((this.state.currentPlayer == 0) && (CanDraw(this.state.hands[0], this.discardPile[0]))) {
+      drawChance = true;
+    }
+
+    imageDB[0].push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0} cursor={drawChance ? "grab" : "not-allowed"} clickAllowed={drawChance} onClick={this.onClick_Draw}/>);
     imageDB[0].push(<UrlImage width={120} height={174} src={this.discardPile[0].image} x={window.innerHeight*1.5/2+5} y={window.innerHeight/2-87} draggable={false} rot={0} />);
 
     imageDB.push([]);

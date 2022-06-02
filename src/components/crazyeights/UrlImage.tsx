@@ -2,6 +2,13 @@ import { Image } from "react-konva";
 import useImage from "use-image";
 import { useState, useEffect, useRef } from "react";
 
+export const isValid_CE = (current: any, discard: any) => {
+    if (current.denomination == discard.denomination || current.suit == discard.suit || current.denomination == "Eight") {
+        return true;
+    }
+    return false;
+}
+
 const UrlImage = (props: any) => {
     const [image] = useImage(props.src);
 
@@ -28,13 +35,6 @@ const UrlImage = (props: any) => {
         console.log("DRAG STARTED FOR "+props.current.toString);
         setZIndex(e.target.zIndex());
         e.target.moveToTop();
-    }
-
-    const isValid_CE = (current: any, discard: any) => {
-        if (current.denomination == discard.denomination || current.suit == discard.suit || current.denomination == "Eight") {
-            return true;
-        }
-        return false;
     }
 
     useEffect(() => {
@@ -76,6 +76,7 @@ const UrlImage = (props: any) => {
         name = {props.current ? props.current["toString"] : ""}
         _useStrictMode
         ref= {props.target}
+        onMouseUp = {props.clickAllowed ? props.onClick : null}
         />)
 }
 
