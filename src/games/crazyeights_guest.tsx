@@ -22,6 +22,7 @@ interface GuestProps {
     inWaiting: boolean,
     discardPile: any,
     currentPlayer: number,
+    reset: boolean,
 }
 
 class CrazyEightsGuest extends React.Component<any, GuestProps> {
@@ -42,13 +43,15 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
             playerName: "",
             inWaiting: true,
             discardPile: {},
-            currentPlayer: 0
+            currentPlayer: 0,
+            reset: false,
         };
 
         this.joinClick = this.joinClick.bind(this);
         this.joinRSP = this.joinRSP.bind(this);
         this.welcome = this.welcome.bind(this);
         this.carddown = this.carddown.bind(this);
+        this.dragEnd = this.dragEnd.bind(this);
 
         this.gameId = this.props.params.id;
         this.nameref = React.createRef();
@@ -63,11 +66,15 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
     }
 
     carddown(data: any) {
+        if (data['FROMORDER'] == this.order) {
+            return;
+        }
         this.others[data['FROMORDER']] = data['NUMCARDS'];
         console.log(this.others);
         this.setState({
             currentPlayer: data['NEXTPLAYER'],
-            discardPile: data['CARDDOWN']
+            discardPile: data['CARDDOWN'],
+            reset: true,
         });
     }
 
@@ -80,23 +87,72 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
     joinRSP(data: any) {
         if (!data['FAILURE'] && data['TO'] == this.state.playerId) {
             this.order = data['ORDER'];
-            this.hand = data['CARDS'];
             for (var i=0; i<data['NUMPLAYERS']; i++) {
-                if (i==this.order) {
-                    this.others.push(this.hand.length);
-                } else {
-                    this.others.push(7);
-                }
+                this.others.push(7);
             }
             this.setState({
-                discardPile: data['DISCARD']
+                discardPile: data['DISCARD'],
+                hand: data['CARDS']
             })
         }
     }
 
-    generatePlay() {
+    dragEnd(current: any) {
+        var currentList = [];
+        for (var i=0; i<this.state.hand.length; i++) {
+          currentList.push(this.state.hand[i].toString);
+        }
+        const index = currentList.indexOf(current.toString);
+        this.others[this.order] = this.others[this.order]-1;
+        console.log(currentList);
+        console.log(current);
+        console.log(index);
+        console.log(this.state.hand);
+        var newHand = [];
+        for (var x=0; x<this.state.hand.length; x++) {
+          if (x != index) {
+            newHand.push(this.state.hand[x]);
+          }
+        }
+        console.log(newHand);
+    
+        var toUpdate = newHand;
+        console.log(this.state.discardPile);
+        console.log(this.state.hand);
+        axios.post(config['flaskServer']+"publish", {
+          GAME: this.gameId,
+          MSG: "CARDDOWN",
+          PARAMS: {
+            TO: "ALL",
+            FROM: this.state.playerId,
+            FROMORDER: this.order,
+            NUMCARDS: toUpdate.length,
+            CARDDOWN: current,
+            NEXTPLAYER: this.order == this.others.length-1 ? 0 : this.order+1
+          }
+        }).then(() => {
+          this.setState({
+            currentPlayer: this.order+1 == this.others.length ? 0 : this.order+1,
+            reset: true,
+            discardPile: current,
+            hand: toUpdate
+          });
+        })
+      }
+
+      componentDidUpdate() {
+        if (this.state.reset) {
+            this.setState({
+                reset: false
+            });
+        }
+      }
+    
+      generatePlay() {
         console.log(this.state);
         console.log(this.others);
+        console.log(this.order);
+        console.log(this.state.hand);
         var locationsX = [(window.innerHeight*1.5)/2-Math.floor(this.others[0]/2)*20-40, window.innerHeight*1.5-54, (window.innerHeight*1.5)/2-Math.floor(this.others[0]/2)*20-40, 0];
         var locationsY = [window.innerHeight-174, (window.innerHeight/2)-Math.floor(this.others[1]/2)*20-40, 0, (window.innerHeight/2)-Math.floor(this.others[1]/2)*20+40];
     
@@ -121,19 +177,19 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
               if (i==1) {
                 if (i==this.order) {
                     console.log(currentX+" "+currentY);
-                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    imageDB[i+1].push(<UrlImage src={this.state.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={this.state.currentPlayer == this.order ? true : false} rot={90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87} discard={this.state.discardPile} current={this.state.hand[x]} cursor={this.state.currentPlayer == this.order ? "grab" : "not-allowed"} dragEnd = {this.dragEnd}/>)
                 } else {
                     imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={90}/>);
                 }       
               } else if (i==3) {
                 if (i==this.order) {
-                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={-90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    imageDB[i+1].push(<UrlImage src={this.state.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={this.state.currentPlayer == this.order ? true : false} rot={-90} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87} discard={this.state.discardPile} current={this.state.hand[x]} cursor={this.state.currentPlayer == this.order ? "grab" : "not-allowed"} dragEnd = {this.dragEnd}/>)
                 } else {
                     imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={-90}/>);
                 }
               } else {
                 if (i==this.order) {
-                    imageDB[i+1].push(<UrlImage src={this.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={true} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87}/>)
+                    imageDB[i+1].push(<UrlImage src={this.state.hand[x].image} x={currentX} y={currentY} width={120} height={174} draggable={this.state.currentPlayer == this.order ? true : false} rot={0} discardX={window.innerHeight*1.5/2+5} discardY={window.innerHeight/2-87} discard={this.state.discardPile} current={this.state.hand[x]} cursor={this.state.currentPlayer == this.order ? "grab" : "not-allowed"} dragEnd = {this.dragEnd}/>)
                 } else {
                     imageDB[i+1].push(<UrlImage src={backSrc} x={currentX} y={currentY} width={120} height={174} draggable={false} rot={0}/>);   
                 }
@@ -191,6 +247,11 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
                         <button onClick={this.joinClick}>Join!</button>
                     </div>
                 </div>
+            )
+        }
+        if (this.state.reset) {
+            return (
+                <div></div>
             )
         }
         var toReturn = this.generatePlay();

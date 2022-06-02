@@ -76,6 +76,22 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     this.computerJoined = this.computerJoined.bind(this);
     this.generatePlay = this.generatePlay.bind(this);
     this.dragEnd = this.dragEnd.bind(this);
+    this.cardDown = this.cardDown.bind(this);
+  }
+
+  cardDown(data: any) {
+    if (data['FROMORDER'] == 0) {
+      return;
+    }
+    var newHand: Array<any> = this.state.hands[parseInt(data['FROMORDER'])].splice(this.state.hands[parseInt(data['FROMORDER'])].indexOf(data['CARDDOWN']), 1);
+    var toReturn = this.state.hands.slice();
+    toReturn[parseInt(data['FROMORDER'])] = newHand;
+    this.discardPile[0] = data['CARDDOWN'];
+    this.setState({
+        currentPlayer: data['NEXTPLAYER'],
+        hands: toReturn,
+        reset: true,
+    });
   }
 
   componentDidMount() {
@@ -154,6 +170,7 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
       axios.get(config["flaskServer"]+"accessidgen").then((response: any) => {
         this.channel = pusher.subscribe(response['data']['data']);
         this.channel.bind("JOIN", this.computerJoined);
+        this.channel.bind("CARDDOWN", this.cardDown);
         this.setState({
           customLink: config['webServer']+"play/crazyeights/"+response['data']['data'],
           gameId: response['data']['data']
@@ -236,7 +253,6 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     if (!this.state.linkgiven) {
       return;
     }
-    alert("HEY 1");
     if (this.state.reset) {
       this.setState({
         reset: false
@@ -245,7 +261,6 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
   }
 
   generatePlay() {
-    alert("hi");
     console.log(this.state);
     console.log(this.state.hands);
     var locationsX = [(window.innerHeight*1.5)/2-Math.floor(this.state.hands[0].length/2)*20-40, window.innerHeight*1.5-54, (window.innerHeight*1.5)/2-Math.floor(this.state.hands[0].length/2)*20-40, 0];
