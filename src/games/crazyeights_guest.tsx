@@ -8,6 +8,7 @@ import { Stage, Layer } from 'react-konva';
 
 const axios = require('axios');
 const backSrc = "https://infinitecards.s3.us-east-1.amazonaws.com/card_design_BBN3.png";
+const turnindicator = "https://infinitecards.s3.us-east-1.amazonaws.com/turnindicator.png";
 
 Pusher.logToConsole = true;
 var pusher = new Pusher(config["pusherKey"], {
@@ -207,6 +208,12 @@ class CrazyEightsGuest extends React.Component<any, GuestProps> {
             }
           }
         }
+
+        imageDB.push([]);
+        var turnIndicatorX = [window.innerHeight*1.5/2-25, window.innerHeight*1.5-300, window.innerHeight*1.5/2-25, 300];
+        var turnIndicatorY = [window.innerHeight-250, window.innerHeight/2-25, 224, window.innerHeight/2-25];
+
+        imageDB[imageDB.length-1].push(<UrlImage src={turnindicator} x={turnIndicatorX[this.state.currentPlayer]} y={turnIndicatorY[this.state.currentPlayer]} width={50} height={50} draggable={false} rot={0}/>)
 
         var layerDB = [];
         for (var z=0; z<imageDB.length; z++) {

@@ -13,6 +13,7 @@ const seed = [32, 10, 12, 2, 40, 49, 13, 9, 11, 0, 36, 23, 35, 38, 5, 14, 1, 20,
 
 const axios = require('axios');
 const backSrc = "https://infinitecards.s3.us-east-1.amazonaws.com/card_design_BBN3.png";
+const turnindicator = "https://infinitecards.s3.us-east-1.amazonaws.com/turnindicator.png";
 
 interface CrazyEightsState {
   loaded: boolean,
@@ -83,7 +84,12 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
     if (data['FROMORDER'] == 0) {
       return;
     }
-    var newHand: Array<any> = this.state.hands[parseInt(data['FROMORDER'])].splice(this.state.hands[parseInt(data['FROMORDER'])].indexOf(data['CARDDOWN']), 1);
+    var newHand: Array<any> = [];
+    for (var x=0; x<this.state.hands[parseInt(data['FROMORDER'])].length; x++) {
+      if (this.state.hands[parseInt(data['FROMORDER'])][x] != data['CARDDOWN']) {
+        newHand.push(this.state.hands[parseInt(data['FROMORDER'])][x]);
+      }
+    }
     var toReturn = this.state.hands.slice();
     toReturn[parseInt(data['FROMORDER'])] = newHand;
     this.discardPile[0] = data['CARDDOWN'];
@@ -338,6 +344,12 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
 
     imageDB[0].push(<UrlImage width={120} height={174} src={backSrc} x={window.innerHeight*1.5/2-125} y={window.innerHeight/2-87} draggable={false} rot={0}/>);
     imageDB[0].push(<UrlImage width={120} height={174} src={this.discardPile[0].image} x={window.innerHeight*1.5/2+5} y={window.innerHeight/2-87} draggable={false} rot={0} />);
+
+    imageDB.push([]);
+    var turnIndicatorX = [window.innerHeight*1.5/2-25, window.innerHeight*1.5-300, window.innerHeight*1.5/2-25, 300];
+    var turnIndicatorY = [window.innerHeight-250, window.innerHeight/2-25, 224, window.innerHeight/2-25];
+
+    imageDB[imageDB.length-1].push(<UrlImage src={turnindicator} x={turnIndicatorX[this.state.currentPlayer]} y={turnIndicatorY[this.state.currentPlayer]} width={50} height={50} draggable={false} rot={0}/>)
 
     var layerDB = [];
     for (var z=0; z<imageDB.length; z++) {
