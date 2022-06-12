@@ -275,6 +275,33 @@ class CrazyEights extends Component<{}, CrazyEightsState> {
   }
 
   onDraw(data: any) {
+    if (this.cardDeck.length == 0) {
+      var toStrings: Array<any> = [];
+      var newDeckU: Array<any> = [];
+      for (var x=0; x<this.state.hands.length; x++) {
+        for (var y=0; y<this.state.hands[x].length; y++) {
+          toStrings.push(this.state.hands[x][y].toString);
+        }
+      }
+      toStrings.push(this.discardPile[0].toString);
+      newDeckU = RegDeck.filter(function(value, index, arr){
+        if (toStrings.indexOf(value.toDict().toString) == -1) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+      var newDeck: Array<any> = [];
+      axios.get(config['flaskServer']+"shuffle/"+newDeckU.length).then((response: any) => {
+        for (var u=0; u<response['data']['data'].length; u++) {
+          newDeck.push(newDeckU[response['data']['data'][u]]);
+        }
+      });
+      this.cardDeck = newDeck;
+      this.setState({
+        reset: true
+      })
+    }
     if (data['ENDTURN']) {
       this.setState({
         currentPlayer: data['NEXTPLAYER'],
